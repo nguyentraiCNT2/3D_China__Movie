@@ -3,8 +3,10 @@ package org.project4.backend.service.admin_service.impl;
 import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
 import org.project4.backend.dto.User_DTO;
+import org.project4.backend.entity.Notification_Entity;
 import org.project4.backend.entity.Role_Entity;
 import org.project4.backend.entity.User_Entity;
+import org.project4.backend.repository.admin_repository.Notification_Repository;
 import org.project4.backend.repository.admin_repository.Role_Repository;
 import org.project4.backend.repository.admin_repository.User_Repository;
 import org.project4.backend.service.admin_service.User_Service;
@@ -13,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +28,8 @@ public class User_Service_IMPL implements User_Service {
     private ModelMapper modelMapper;
     @Autowired
     private Role_Repository role_Repository;
+    @Autowired
+    private Notification_Repository notificationRepository;
     // hiển thị tất cả người dùng
     @Override
     public List<User_DTO> getAll(Pageable pageable) {
@@ -137,9 +143,15 @@ public class User_Service_IMPL implements User_Service {
             User_Entity user_entity = user_Repository.findById(id).orElseThrow(() -> new RuntimeException("Không có người dùng này!"));
             user_entity.setPoint(user_entity.getPoint() + point);
             user_Repository.save(user_entity);
+            Notification_Entity notificationEntity = new Notification_Entity();
+            notificationEntity.setUser(user_entity);
+            notificationEntity.setTimeadd(Date.valueOf(LocalDate.now()));
+            notificationEntity.setTimeupdate(Date.valueOf(LocalDate.now()));
+            notificationEntity.setContent("Đã nạp "+ point +" xu \n số dư hiện tại là: " + user_entity.getPoint()+" xu.");
+            notificationEntity.setStatus(true);
+            notificationRepository.save(notificationEntity);
             User_DTO user_DTO = modelMapper.map(user_entity, User_DTO.class);
             return user_DTO;
-
         }catch (Exception e) {
             throw new RuntimeException("Có lỗi xảy ra");
         }

@@ -20,6 +20,16 @@ public class Notification_Entity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User_Entity user;
+    @Column(name = "status")
+    private Boolean status;
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;

@@ -7,6 +7,15 @@ public class Notification_DTO {
     private Date timeadd;
     private Date timeupdate;
     private User_DTO user;
+    private Boolean status;
+
+    public Boolean getStatus() {
+        return status;
+    }
+
+    public void setStatus(Boolean status) {
+        this.status = status;
+    }
 
     public Long getId() {
         return id;

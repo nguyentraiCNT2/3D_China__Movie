@@ -33,6 +33,10 @@ public class Movie_Service_IMPL implements Movie_Service {
     private Category_Movie_Repository categoryMovieRepository;
     @Autowired
     private Episode_Repository episodeRepository;
+    @Autowired
+    private Schedule_Movie_Repository scheduleMovieRepository;
+    @Autowired
+    private Schedule_Repository scheduleRepository;
     @Override
     public List<Movie_DTO> getAll(Pageable pageable) {
         List<Movie_DTO> result = new ArrayList<>();
@@ -229,7 +233,7 @@ public class Movie_Service_IMPL implements Movie_Service {
     }
 
     @Override
-    public Movie_DTO create(Movie_DTO movie_DTO, MultipartFile file, String categorylist) throws IOException {
+    public Movie_DTO create(Movie_DTO movie_DTO, MultipartFile file, String categorylist, String scheduleList) throws IOException {
         try {
             if (movie_DTO == null) {
                 throw new RuntimeException("Bạn chưa nhập dữ liệu!");
@@ -252,6 +256,16 @@ public class Movie_Service_IMPL implements Movie_Service {
                 Category_Entity category = new Category_Entity();
                 category.setId(id);
                 categoryEntities.add(category);
+            }
+            // Xử lý danh sách thể loại
+            List<String> scheduleIds = Arrays.asList(scheduleList.split(","));
+            List<Schedule_Entity> scheduleEntities = new ArrayList<>();
+
+            for (String idStr : scheduleIds) {
+                Long id = Long.valueOf(idStr.trim()); // Chuyển đổi và loại bỏ khoảng trắng
+                Schedule_Entity schedule = new Schedule_Entity();
+                schedule.setId(id);
+                scheduleEntities.add(schedule);
             }
 
             // Tạo đối tượng Movie_Entity
@@ -277,7 +291,15 @@ public class Movie_Service_IMPL implements Movie_Service {
                 categoryMovieEntity.setMovie(movieEntity);
                 categoryMovieRepository.save(categoryMovieEntity);
             }
-
+            // Xử lý thêm lịch đăng liên quan
+            for (Schedule_Entity schedule : scheduleEntities) {
+                Schedule_Entity scheduleitem = scheduleRepository.findById(schedule.getId())
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy thể loại"));
+                Schedule_Movie_Entity scheduleMovieEntity = new Schedule_Movie_Entity();
+                scheduleMovieEntity.setSchedule(scheduleitem);
+                scheduleMovieEntity.setMovie(movieEntity);
+                scheduleMovieRepository.save(scheduleMovieEntity);
+            }
             // Chuyển đổi entity sang DTO
             return modelMapper.map(movieEntity, Movie_DTO.class);
 
@@ -287,7 +309,7 @@ public class Movie_Service_IMPL implements Movie_Service {
     }
 
     @Override
-    public Movie_DTO update(Movie_DTO movie_DTO, MultipartFile file, String categorylist) throws IOException{
+    public Movie_DTO update(Movie_DTO movie_DTO, MultipartFile file, String categorylist, String scheduleList) throws IOException{
         try {
                 if (movie_DTO == null)
                     throw new RuntimeException("Bạn chưa nhập dữ liệu!");
@@ -308,6 +330,15 @@ public class Movie_Service_IMPL implements Movie_Service {
                 Category_Entity category = new Category_Entity();
                 category.setId(id);
                 list.add(category);
+            }
+            List<String> scheduleIds = Arrays.asList(scheduleList.split(","));
+            List<Schedule_Entity> scheduleEntities = new ArrayList<>();
+
+            for (String idStr : scheduleIds) {
+                Long id = Long.valueOf(idStr.trim()); // Chuyển đổi và loại bỏ khoảng trắng
+                Schedule_Entity schedule = new Schedule_Entity();
+                schedule.setId(id);
+                scheduleEntities.add(schedule);
             }
             movie_entity.setId(movie_DTO.getId());
             movie_entity.setVnname(movie_DTO.getVnname());
@@ -335,6 +366,17 @@ public class Movie_Service_IMPL implements Movie_Service {
                 category_movie_entityupdate.setCategory(categoryitem);
                 category_movie_entityupdate.setMovie(movie_entity_update);
                 categoryMovieRepository.save(category_movie_entityupdate);
+            }
+            List<Schedule_Movie_Entity> schedule_movie_entity = scheduleMovieRepository.findByMovie(movie_entity);
+            for (Schedule_Movie_Entity item : schedule_movie_entity) {
+                scheduleMovieRepository.delete(item);
+            }
+            for (Schedule_Entity  item : scheduleEntities) {
+                Schedule_Entity schedule = scheduleRepository.findById(item.getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy lịch chiếu"));
+                Schedule_Movie_Entity scheduleMovieEntity = new Schedule_Movie_Entity();
+                scheduleMovieEntity.setSchedule(schedule);
+                scheduleMovieEntity.setMovie(movie_entity_update);
+                scheduleMovieRepository.save(scheduleMovieEntity);
             }
             Movie_DTO movie_dto = modelMapper.map(movie_entity_update, Movie_DTO.class);
             return movie_dto;

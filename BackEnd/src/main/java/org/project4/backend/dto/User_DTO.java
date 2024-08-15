@@ -7,6 +7,7 @@ import java.sql.Date;
 public class User_DTO {
     private Long id;
     private String username;
+    private String fullname;
     private String password;
     private String email;
     private Date timeadd;
@@ -15,6 +16,14 @@ public class User_DTO {
     private byte[]  avatar;
     private Boolean status;
     private Boolean active;
+
+    public String getFullname() {
+        return fullname;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
 
     public Long getId() {
         return id;

@@ -33,9 +33,9 @@ public interface Movie_Service {
     Movie_DTO getById(Long id);
     Movie_DTO getByMovieId(Long id);
 
-    Movie_DTO create(Movie_DTO movie_DTO, MultipartFile file, String categorylist)throws IOException;
+    Movie_DTO create(Movie_DTO movie_DTO, MultipartFile file, String categorylist, String scheduleList)throws IOException;
 
-    Movie_DTO update(Movie_DTO movie_DTO, MultipartFile file, String categorylist)throws IOException;
+    Movie_DTO update(Movie_DTO movie_DTO, MultipartFile file, String categorylist, String scheduleList)throws IOException;
 
     void delete(Long id);
 

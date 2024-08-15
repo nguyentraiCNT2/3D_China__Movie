@@ -30,6 +30,16 @@ public class User_Entity {
     private Boolean status;
     @Column(name = "active")
     private Boolean active;
+    @Column(name = "fullname", columnDefinition = "Nvarchar(max)")
+    private String fullname;
+
+    public String getFullname() {
+        return fullname;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
 
     public Long getId() {
         return id;

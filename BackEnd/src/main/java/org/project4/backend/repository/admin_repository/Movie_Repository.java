@@ -20,6 +20,7 @@ public interface Movie_Repository extends JpaRepository<Movie_Entity, Long> {
     List<Movie_Entity> findByUseradd(User_Entity user_add, Pageable pageable);
     List<Movie_Entity> findByUserupdate(User_Entity user_update, Pageable pageable);
     List<Movie_Entity> findByVipmovie(Boolean vip_movie, Pageable pageable);
+    List<Movie_Entity> findByVipmovie(Boolean vip_movie);
     List<Movie_Entity> findByTimeadd(Date time_add, Pageable pageable);
     List<Movie_Entity> findByTimeupdate(Date time_update, Pageable pageable);
 }

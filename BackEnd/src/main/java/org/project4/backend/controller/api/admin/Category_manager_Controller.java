@@ -16,13 +16,14 @@ import org.springframework.web.bind.annotation.*;
 public class Category_manager_Controller {
     @Autowired
     private Category_Service categoryService;
+    // Api hiển thị tất cả
     @GetMapping("/all")
     public Category_OutPut getAll(@RequestParam("page") int page, @RequestParam("limit") int limit) {
         Category_OutPut result = new Category_OutPut();
-        result.setPage(page);
-        Pageable pageable = PageRequest.of(page - 1, limit);
-        result.setListResult(categoryService.getAll(pageable));
-        result.setTotalPage((int) Math.ceil((double) (categoryService.totalItem()) / limit));
+        result.setPage(page); //  đưa ra tố trang hiển tại
+        Pageable pageable = PageRequest.of(page - 1, limit); // khởi tạo phân trang
+        result.setListResult(categoryService.getAll(pageable)); // gán dữ liệu
+        result.setTotalPage((int) Math.ceil((double) (categoryService.totalItem()) / limit)); // đưa ra số phần tử theo trang 
         return result;
     }
     @GetMapping("/getbyname")

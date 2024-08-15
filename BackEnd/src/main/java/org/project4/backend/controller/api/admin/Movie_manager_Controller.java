@@ -51,7 +51,8 @@ public class Movie_manager_Controller {
                                          @RequestParam("episode_number") Long episode_number, @RequestParam("status") String status,
                                          @RequestParam("new_movie") Boolean new_movie, @RequestParam("hot_movie") Boolean hot_movie,
                                          @RequestParam("vip_movie") Boolean vip_movie, @RequestParam("price") BigDecimal price,
-                                         @RequestParam("image") MultipartFile file,@RequestParam("year") Long year) {
+                                         @RequestParam("image") MultipartFile file,@RequestParam("year") Long year,
+                                         @RequestParam("schedulelist") String schedulelist) {
         try {
 
             //Tạo user
@@ -73,7 +74,7 @@ public class Movie_manager_Controller {
             movie_dto.setPrice(price);
             movie_dto.setTotalviews(0L);
             movie_dto.setYear(year);
-            movieService.create(movie_dto, file, categorylist);
+            movieService.create(movie_dto, file, categorylist,schedulelist );
             return new ResponseEntity<>("Thêm mới thành công!", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -87,7 +88,8 @@ public class Movie_manager_Controller {
                                           @RequestParam("episode_number") Long episode_number, @RequestParam("status") String status,
                                           @RequestParam("new_movie") Boolean new_movie, @RequestParam("hot_movie") Boolean hot_movie,
                                           @RequestParam("vip_movie") Boolean vip_movie, @RequestParam("price") BigDecimal price,
-                                          @RequestParam(value = "image", required = false) MultipartFile file,@RequestParam("year") Long year) {
+                                          @RequestParam(value = "image", required = false) MultipartFile file,
+                                          @RequestParam("year") Long year, @RequestParam("schedulelist") String schedulelist) {
         try {
 
             //Tạo user
@@ -109,7 +111,7 @@ public class Movie_manager_Controller {
             movie_dto.setVipmovie(vip_movie);
             movie_dto.setPrice(price);
             movie_dto.setYear(year);
-            movieService.update(movie_dto, file, categorylist);
+            movieService.update(movie_dto, file, categorylist, schedulelist);
 
             return new ResponseEntity<>("Thêm mới thành công!", HttpStatus.OK);
         } catch (Exception e) {

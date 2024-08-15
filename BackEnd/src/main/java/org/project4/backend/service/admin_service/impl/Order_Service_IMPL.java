@@ -5,9 +5,11 @@ import org.project4.backend.controller.output.MonthlyRevenue;
 import org.project4.backend.dto.Movie_DTO;
 import org.project4.backend.dto.Orders_DTO;
 import org.project4.backend.entity.Movie_Entity;
+import org.project4.backend.entity.Notification_Entity;
 import org.project4.backend.entity.Orders_Entity;
 import org.project4.backend.entity.User_Entity;
 import org.project4.backend.repository.admin_repository.Movie_Repository;
+import org.project4.backend.repository.admin_repository.Notification_Repository;
 import org.project4.backend.repository.admin_repository.Orders_Repository;
 import org.project4.backend.repository.admin_repository.User_Repository;
 import org.project4.backend.service.admin_service.Order_Service;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 @Service
 public class Order_Service_IMPL implements Order_Service {
     @Autowired
@@ -31,6 +34,8 @@ public class Order_Service_IMPL implements Order_Service {
     private User_Repository userRepository;
     @Autowired
     private Movie_Repository movieRepository;
+    @Autowired
+    private Notification_Repository notificationRepository;
 
     @Override
     public List<Orders_DTO> getAll(Pageable pageable) {
@@ -73,22 +78,32 @@ public class Order_Service_IMPL implements Order_Service {
     @Override
     public void buy_Movie(Orders_DTO orders_DTO) {
 
-            if (orders_DTO == null)
-                throw new RuntimeException("Không có đơn hàng nào");
-            Movie_Entity movie = movieRepository.findById(orders_DTO.getMovie().getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy phim"));
-            User_Entity user = userRepository.findById(orders_DTO.getUser().getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-            if (user.getPoint() <= movie.getPrice().longValueExact())
-                throw new RuntimeException("Xu còn lại của bạn không đủ vui lòng nạp thêm!");
-            Orders_Entity orders_entity = modelMapper.map(orders_DTO, Orders_Entity.class);
-            Date currentDate = Date.valueOf(LocalDate.now());
-            orders_entity.setMovie(movie);
-            orders_entity.setUser(user);
-            orders_entity.setPoint(movie.getPrice().longValueExact());
-            orders_entity.setStatus("COMPLETED");
-            orders_entity.setDate(currentDate);
-            order_Repository.save(orders_entity);
-            user.setPoint(user.getPoint() - movie.getPrice().longValueExact());
-            userRepository.save(user);
+        if (orders_DTO == null)
+            throw new RuntimeException("Không có đơn hàng nào");
+        Movie_Entity movie = movieRepository.findById(orders_DTO.getMovie().getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy phim"));
+        User_Entity user = userRepository.findById(orders_DTO.getUser().getId()).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+        if (user.getPoint() <= movie.getPrice().longValueExact())
+            throw new RuntimeException("Xu còn lại của bạn không đủ vui lòng nạp thêm!");
+        List<Orders_Entity> orderscheck = order_Repository.findByUserAndMovie(user, movie);
+        if (orderscheck.size() > 0)
+            throw new RuntimeException("Bạn đã mua phim này rồi!");
+        Orders_Entity orders_entity = modelMapper.map(orders_DTO, Orders_Entity.class);
+        Date currentDate = Date.valueOf(LocalDate.now());
+        orders_entity.setMovie(movie);
+        orders_entity.setUser(user);
+        orders_entity.setPoint(movie.getPrice().longValueExact());
+        orders_entity.setStatus("COMPLETED");
+        orders_entity.setDate(currentDate);
+        Orders_Entity orders = order_Repository.save(orders_entity);
+        user.setPoint(user.getPoint() - movie.getPrice().longValueExact());
+        userRepository.save(user);
+        Notification_Entity notification = new Notification_Entity();
+        notification.setUser(user);
+        notification.setTimeadd(Date.valueOf(LocalDate.now()));
+        notification.setTimeupdate(Date.valueOf(LocalDate.now()));
+        notification.setContent("Đã mua phim: " + movie.getVnname() + " hết " + orders.getPoint() + " xu \n số dư hiện tại là: " + user.getPoint() + " xu.");
+        notification.setStatus(false);
+        notificationRepository.save(notification);
 
     }
 
@@ -97,8 +112,8 @@ public class Order_Service_IMPL implements Order_Service {
         try {
             Orders_Entity orders_entity = order_Repository.findById(id).orElseThrow(() -> new Exception("Không tìm thấy đơn hàng"));
             return modelMapper.map(orders_entity, Orders_DTO.class);
-        }catch (Exception e) {
-         throw  new RuntimeException("Không tìm thấy đơn hang");
+        } catch (Exception e) {
+            throw new RuntimeException("Không tìm thấy đơn hang");
         }
     }
 
@@ -107,10 +122,13 @@ public class Order_Service_IMPL implements Order_Service {
         try {
             User_Entity user = userRepository.findById(userId).orElseThrow(() -> new Exception("Không tìm thấy người dùng"));
             Movie_Entity movie = movieRepository.findById(movieId).orElseThrow(() -> new Exception("Không tìm thấy phim"));
-            Orders_Entity orders_entity = order_Repository.findByUserAndMovie(user, movie);
-            return modelMapper.map(orders_entity, Orders_DTO.class);
-        }catch (Exception e) {
-        throw new RuntimeException("Không tìm thấy đơn hang");
+            List<Orders_Entity> orders_entity = order_Repository.findByUserAndMovie(user, movie);
+            if (orders_entity.size() == 0)
+                throw new Exception("Không tìm thấy đơn hang");
+            Orders_Entity orders = orders_entity.get(0);
+            return modelMapper.map(orders, Orders_DTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Không tìm thấy đơn hang");
         }
     }
 
@@ -119,7 +137,7 @@ public class Order_Service_IMPL implements Order_Service {
 
         List<Orders_DTO> result = new ArrayList<>();
         User_Entity user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-        List<Orders_Entity> ordersEntities = order_Repository.findByUser(user, pageable);
+        List<Orders_Entity> ordersEntities = order_Repository.findByUserOrderByDateDesc(user, pageable);
         if (ordersEntities == null)
             throw new RuntimeException("Không có bộ phim có tên này");
         for (Orders_Entity orders : ordersEntities) {

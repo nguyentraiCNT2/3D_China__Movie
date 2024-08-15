@@ -12,8 +12,8 @@ import java.util.List;
 
 @Repository
 public interface Orders_Repository extends JpaRepository<Orders_Entity, Long> {
-    List<Orders_Entity> findByUser(User_Entity userid, Pageable pageable);
-    Orders_Entity findByUserAndMovie(User_Entity userid, Movie_Entity movieid);
+    List<Orders_Entity> findByUserOrderByDateDesc(User_Entity userid, Pageable pageable);
+    List<Orders_Entity>  findByUserAndMovie(User_Entity userid, Movie_Entity movieid);
     List<Orders_Entity> findByMovie(Movie_Entity movieid, Pageable pageable);
     @Query("SELECT MONTH(o.date) AS month, YEAR(o.date) AS year, SUM(o.point) AS totalPoints " +
             "FROM Orders_Entity o " +

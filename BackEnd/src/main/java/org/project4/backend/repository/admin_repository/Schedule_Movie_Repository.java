@@ -10,7 +10,9 @@ import java.util.List;
 
 @Repository
 public interface Schedule_Movie_Repository extends JpaRepository<Schedule_Movie_Entity, Long> {
-    List<Schedule_Movie_Entity> findAllByMovie(Movie_Entity movieId);
+    List<Schedule_Movie_Entity> findByMovie(Movie_Entity movieId);
+
+    List<Schedule_Movie_Entity> findBySchedule(Schedule_Entity scheduleId);
     List<Schedule_Movie_Entity> findAllBySchedule(Schedule_Entity scheduleId);
 
 }
